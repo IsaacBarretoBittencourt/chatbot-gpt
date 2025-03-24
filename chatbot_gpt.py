@@ -13,8 +13,10 @@ import streamlit as st
 # ==========================
 # 🔑 Configuração da API GPT
 # ==========================
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+import os
+import openai
 
+openai.api_key = os.getenv("OPENAI_API_KEY")
 # ==========================
 # 🗄️ Criação da base de dados
 # ==========================
