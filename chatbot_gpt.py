@@ -8,12 +8,12 @@ import numpy as np
 import json
 import pandas as pd
 import streamlit as st
-from openai import OpenAI
+import openai
 
 # ==========================
 # 🔑 Configuração da API GPT
 # ==========================
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # ==========================
 # 🗄️ Criação da base de dados
@@ -98,7 +98,7 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
