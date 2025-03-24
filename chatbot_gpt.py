@@ -17,7 +17,8 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("⚠️ API Key para OpenAI não configurada!")
 else:
-    client = OpenAI(api_key=api_key)
+    # Configure a chave da API diretamente na biblioteca
+    client = OpenAI()
 
 # ==========================
 # 🗄️ Criação da base de dados
