@@ -13,7 +13,11 @@ from openai import OpenAI
 # ==========================
 # 🔑 Configuração da API GPT
 # ==========================
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    st.error("⚠️ API Key para OpenAI não configurada!")
+else:
+    client = OpenAI(api_key=api_key)
 
 # ==========================
 # 🗄️ Criação da base de dados
