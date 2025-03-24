@@ -1,4 +1,9 @@
-openai
-streamlit
-pandas
-scikit-learn
+openai==1.68.2
+streamlit==1.43.2
+numpy==2.2.4
+pandas==2.2.3
+scikit-learn==1.6.1
+scipy==1.15.2
+joblib==1.4.2
+threadpoolctl==3.6.0
+fpdf==1.7.2
