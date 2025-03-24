@@ -8,7 +8,7 @@ import numpy as np
 import json
 import pandas as pd
 import streamlit as st
-from openai import OpenAI
+import openai
 
 # ==========================
 # 🔑 Configuração da API GPT
@@ -17,8 +17,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("⚠️ API Key para OpenAI não configurada!")
 else:
-    # Configure a chave da API diretamente na biblioteca
-    client = OpenAI()
+    openai.api_key = api_key
 
 # ==========================
 # 🗄️ Criação da base de dados
@@ -53,7 +52,7 @@ def save_chat(date, user_input, gpt_response):
     conn.close()
 
 # ==========================
-# 🔎 Busca com NLP (Natural Language Processing)
+# 🔎 Busca com NLP
 # ==========================
 def search_chat(query):
     conn = sqlite3.connect(DB_NAME)
@@ -103,7 +102,7 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = client.chat.completions.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
