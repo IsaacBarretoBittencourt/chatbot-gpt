@@ -10,7 +10,9 @@ import json
 import pandas as pd
 
 # Configuração da API GPT
-openai.api_key = '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'
+import os
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
 
 # Criação da base de dados
 DB_NAME = 'chat_history.db'
