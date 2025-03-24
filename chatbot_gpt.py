@@ -9,6 +9,7 @@ import numpy as np
 import json
 import pandas as pd
 import streamlit as st
+from fpdf import FPDF
 
 # ==========================
 # 🔑 Configuração da API GPT
@@ -134,31 +135,26 @@ def export_chats_to_excel():
     df = pd.read_sql_query("SELECT * FROM chats", conn)
     conn.close()
     df.to_excel('chat_history.xlsx', index=False)
-    st.success("✅ Chat history exported to Excel!")
+    st.success("Chat history exported to Excel!")
 
 # ==========================
 # 📄 Exporta chats para PDF
 # ==========================
-from fpdf import FPDF
-
 def export_chats_to_pdf():
     conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM chats")
-    data = cursor.fetchall()
+    df = pd.read_sql_query("SELECT * FROM chats", conn)
     conn.close()
 
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Chat History", ln=True, align='C')
 
-    for chat in data:
-        date, user_input, gpt_response = chat[1], chat[2], chat[3]
-        pdf.multi_cell(0, 10, f"Date: {date}\nUser: {user_input}\nGPT: {gpt_response}\n---\n")
+    for index, row in df.iterrows():
+        pdf.multi_cell(0, 10, f"Date: {row['date']}\nUser Input: {row['user_input']}\nGPT Response: {row['gpt_response']}\n{'-'*50}")
 
     pdf.output("chat_history.pdf")
-    st.success("✅ Chat history exported to PDF!")
+    st.success("Chat history exported to PDF!")
 
 # ==========================
 # 🚀 Interface Streamlit
