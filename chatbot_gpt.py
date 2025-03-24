@@ -10,14 +10,10 @@ import pandas as pd
 import streamlit as st
 from openai import OpenAI
 
-# ==========================
-# 🔑 Configuração da API GPT
-# ==========================
+# Configuração da API GPT
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ==========================
-# 🗄️ Criação da base de dados
-# ==========================
+# Criação da base de dados
 DB_NAME = 'chat_history.db'
 
 def create_database():
@@ -34,9 +30,7 @@ def create_database():
     conn.commit()
     conn.close()
 
-# ==========================
-# 💾 Salva chats na base de dados
-# ==========================
+# Salva chats
 def save_chat(date, user_input, gpt_response):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -47,9 +41,7 @@ def save_chat(date, user_input, gpt_response):
     conn.commit()
     conn.close()
 
-# ==========================
-# 🔎 Busca com NLP
-# ==========================
+# Busca com NLP
 def search_chat(query):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -67,9 +59,7 @@ def search_chat(query):
                 results.append(d)
     return results
 
-# ==========================
-# 📊 Organiza chats por tema (Clusterização)
-# ==========================
+# Organiza chats por tema
 def cluster_chats():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -93,9 +83,7 @@ def cluster_chats():
     else:
         return {}
 
-# ==========================
-# 🤖 Gera resposta com GPT
-# ==========================
+# Gera resposta com GPT
 def generate_gpt_response(prompt):
     try:
         response = client.chat.completions.create(
@@ -110,9 +98,7 @@ def generate_gpt_response(prompt):
         st.error(f"Erro na API OpenAI: {e}")
         return None
 
-# ==========================
-# 📥 Importa histórico de chats
-# ==========================
+# Importa histórico de chats
 def import_chat_history(file):
     try:
         with open(file, 'r') as f:
@@ -126,9 +112,7 @@ def import_chat_history(file):
     except Exception as e:
         st.error(f"Erro ao importar histórico: {e}")
 
-# ==========================
-# 📤 Exporta chats para Excel
-# ==========================
+# Exporta chats para Excel
 def export_chats_to_excel():
     conn = sqlite3.connect(DB_NAME)
     df = pd.read_sql_query("SELECT * FROM chats", conn)
@@ -136,83 +120,30 @@ def export_chats_to_excel():
     df.to_excel('chat_history.xlsx', index=False)
     st.success("Histórico de chats exportado para Excel!")
 
-# ==========================
-# 📄 Exporta chats para PDF
-# ==========================
-from fpdf import FPDF
-
-def export_chats_to_pdf():
-    conn = sqlite3.connect(DB_NAME)
-    df = pd.read_sql_query("SELECT * FROM chats", conn)
-    conn.close()
-    
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    
-    for index, row in df.iterrows():
-        pdf.multi_cell(0, 10, f"User: {row['user_input']}")
-        pdf.multi_cell(0, 10, f"GPT: {row['gpt_response']}")
-        pdf.multi_cell(0, 5, "-" * 50)
-    
-    pdf.output("chat_history.pdf")
-    st.success("Histórico de chats exportado para PDF!")
-
-# ==========================
-# 🚀 Interface Streamlit
-# ==========================
+# Interface Streamlit
 def main():
     st.title("🤖 Chat History GPT Bot")
 
     # Importar histórico JSON
-    uploaded_file = st.file_uploader("📥 Import Chat History (JSON)")
+    uploaded_file = st.file_uploader("📥 Importar Histórico de Chat (JSON)")
     if uploaded_file is not None:
         with open("imported_chats.json", "wb") as f:
             f.write(uploaded_file.getbuffer())
         import_chat_history("imported_chats.json")
-        st.success("✅ Histórico de chats importado com sucesso!")
+        st.success("✅ Histórico importado com sucesso!")
 
-    # Exportar para Excel e PDF
-    if st.button("📊 Export to Excel"):
+    # Exportar para Excel
+    if st.button("📊 Exportar para Excel"):
         export_chats_to_excel()
     
-    if st.button("📄 Export to PDF"):
-        export_chats_to_pdf()
-
     # Buscar chats
-    search_query = st.text_input("🔎 Search Chat History:")
-    if st.button("🔍 Search"):
+    search_query = st.text_input("🔎 Buscar Histórico:")
+    if st.button("🔍 Buscar"):
         if search_query:
             results = search_chat(search_query)
             for result in results:
-                st.write(f"**User Input:** {result[0]}")
-                st.write(f"**GPT Response:** {result[1]}")
-                st.write("---")
-
-    # Organizar por clusters
-    if st.button("🗂️ Organize Chats"):
-        clusters = cluster_chats()
-        for cluster_id, chats in clusters.items():
-            st.write(f"### Topic {cluster_id + 1}")
-            for chat in chats:
-                st.write(f"- {chat}")
-            st.write("---")
-
-    # Chat com GPT
-    user_input = st.text_area("💬 Type your message:")
-    if st.button("💡 Get GPT Response"):
-        if user_input:
-            date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            gpt_response = generate_gpt_response(user_input)
-            if gpt_response:
-                save_chat(date, user_input, gpt_response)
-                st.write(f"**GPT Response:** {gpt_response}")
-
-# ==========================
-# ▶️ Execução principal
-# ==========================
-if __name__ == "__main__":
-    create_database()
-    main()
+                st.write(f"**Pergunta:** {result[0]}")
+                st.write(f"**
+::contentReference[oaicite:13]{index=13}
+ 
 
