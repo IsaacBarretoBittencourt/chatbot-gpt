@@ -99,13 +99,11 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ]
-        )
+   response = openai.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "system", "content": "You are a helpful assistant."},
+              {"role": "user", "content": prompt}]
+)
         return response.choices[0].message.content
     except Exception as e:
         st.error(f"Erro na API OpenAI: {e}")
