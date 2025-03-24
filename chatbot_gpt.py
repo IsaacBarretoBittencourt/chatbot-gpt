@@ -8,12 +8,12 @@ import numpy as np
 import json
 import pandas as pd
 import streamlit as st
-import openai
+from openai import OpenAI
 
 # ==========================
 # 🔑 Configuração da API GPT
 # ==========================
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ==========================
 # 🗄️ Criação da base de dados
@@ -98,7 +98,7 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
@@ -107,7 +107,7 @@ def generate_gpt_response(prompt):
         )
         return response.choices[0].message.content
     except Exception as e:
-        st.error(f"Erro na API OpenAI: {e}")
+        st.error(f"⚠️ Erro na API OpenAI: {e}")
         return None
 
 # ==========================
@@ -123,18 +123,22 @@ def import_chat_history(file):
                 gpt_response = chat.get('gpt_response')
                 if user_input and gpt_response:
                     save_chat(date, user_input, gpt_response)
+        st.success("✅ Histórico importado com sucesso!")
     except Exception as e:
-        st.error(f"Erro ao importar histórico: {e}")
+        st.error(f"⚠️ Erro ao importar histórico: {e}")
 
 # ==========================
 # 📤 Exporta chats para Excel
 # ==========================
 def export_chats_to_excel():
-    conn = sqlite3.connect(DB_NAME)
-    df = pd.read_sql_query("SELECT * FROM chats", conn)
-    conn.close()
-    df.to_excel('chat_history.xlsx', index=False)
-    st.success("✅ Histórico de chats exportado para Excel!")
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        df = pd.read_sql_query("SELECT * FROM chats", conn)
+        conn.close()
+        df.to_excel('chat_history.xlsx', index=False)
+        st.success("✅ Histórico de chats exportado para Excel!")
+    except Exception as e:
+        st.error(f"⚠️ Erro ao exportar para Excel: {e}")
 
 # ==========================
 # 🚀 Interface Streamlit
@@ -148,12 +152,11 @@ def main():
         with open("imported_chats.json", "wb") as f:
             f.write(uploaded_file.getbuffer())
         import_chat_history("imported_chats.json")
-        st.success("✅ Histórico importado com sucesso!")
 
     # Exportar para Excel
     if st.button("📊 Exportar para Excel"):
         export_chats_to_excel()
-    
+
     # Buscar chats
     search_query = st.text_input("🔎 Buscar Histórico:")
     if st.button("🔍 Buscar"):
