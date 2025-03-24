@@ -145,5 +145,3 @@ def main():
                 st.write(f"**Pergunta:** {result[0]}")
                 st.write(f"**
 ::contentReference[oaicite:13]{index=13}
- 
-
