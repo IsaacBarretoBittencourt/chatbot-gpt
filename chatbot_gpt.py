@@ -9,10 +9,11 @@ import numpy as np
 import json
 import pandas as pd
 
-# Configuração da API GPT
-import os
-openai.api_key = os.getenv('OPENAI_API_KEY')
+import streamlit as st
+import openai
 
+# Lê a chave de API dos secrets do Streamlit
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Criação da base de dados
 DB_NAME = 'chat_history.db'
