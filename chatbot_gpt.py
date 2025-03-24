@@ -1,6 +1,5 @@
 import os
 import sqlite3
-import openai
 from datetime import datetime
 from difflib import get_close_matches
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -9,12 +8,12 @@ import numpy as np
 import json
 import pandas as pd
 import streamlit as st
-from fpdf import FPDF
+from openai import OpenAI
 
 # ==========================
 # 🔑 Configuração da API GPT
 # ==========================
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ==========================
 # 🗄️ Criação da base de dados
@@ -99,14 +98,14 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = openai.ChatCompletion.create(  # <-- Aqui foi corrigido
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
             ]
         )
-        return response['choices'][0]['message']['content']
+        return response.choices[0].message.content
     except Exception as e:
         st.error(f"Erro na API OpenAI: {e}")
         return None
@@ -135,25 +134,30 @@ def export_chats_to_excel():
     df = pd.read_sql_query("SELECT * FROM chats", conn)
     conn.close()
     df.to_excel('chat_history.xlsx', index=False)
-    st.success("✅ Chat history exported to Excel!")
+    st.success("Histórico de chats exportado para Excel!")
 
 # ==========================
 # 📄 Exporta chats para PDF
 # ==========================
+from fpdf import FPDF
+
 def export_chats_to_pdf():
     conn = sqlite3.connect(DB_NAME)
     df = pd.read_sql_query("SELECT * FROM chats", conn)
     conn.close()
-
+    
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-
-    for i, row in df.iterrows():
-        pdf.multi_cell(0, 10, f"{row['date']} - {row['user_input']} -> {row['gpt_response']}", border=0)
-
+    
+    for index, row in df.iterrows():
+        pdf.multi_cell(0, 10, f"User: {row['user_input']}")
+        pdf.multi_cell(0, 10, f"GPT: {row['gpt_response']}")
+        pdf.multi_cell(0, 5, "-" * 50)
+    
     pdf.output("chat_history.pdf")
-    st.success("✅ Chat history exported to PDF!")
+    st.success("Histórico de chats exportado para PDF!")
 
 # ==========================
 # 🚀 Interface Streamlit
@@ -167,7 +171,7 @@ def main():
         with open("imported_chats.json", "wb") as f:
             f.write(uploaded_file.getbuffer())
         import_chat_history("imported_chats.json")
-        st.success("✅ Chat history imported successfully!")
+        st.success("✅ Histórico de chats importado com sucesso!")
 
     # Exportar para Excel e PDF
     if st.button("📊 Export to Excel"):
@@ -211,3 +215,4 @@ def main():
 if __name__ == "__main__":
     create_database()
     main()
+
