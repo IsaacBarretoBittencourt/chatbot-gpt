@@ -9,14 +9,13 @@ import numpy as np
 import json
 import pandas as pd
 import streamlit as st
+from fpdf import FPDF
 
 # ==========================
 # 🔑 Configuração da API GPT
 # ==========================
-import os
-import openai
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
 # ==========================
 # 🗄️ Criação da base de dados
 # ==========================
@@ -50,7 +49,7 @@ def save_chat(date, user_input, gpt_response):
     conn.close()
 
 # ==========================
-# 🔎 Busca com NLP (Natural Language Processing)
+# 🔎 Busca com NLP
 # ==========================
 def search_chat(query):
     conn = sqlite3.connect(DB_NAME)
@@ -70,7 +69,7 @@ def search_chat(query):
     return results
 
 # ==========================
-# 📊 Organiza chats por tema (Clusterização)
+# 📊 Organiza chats por tema
 # ==========================
 def cluster_chats():
     conn = sqlite3.connect(DB_NAME)
@@ -100,7 +99,7 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
@@ -145,8 +144,16 @@ def export_chats_to_pdf():
     conn = sqlite3.connect(DB_NAME)
     df = pd.read_sql_query("SELECT * FROM chats", conn)
     conn.close()
-    df.to_csv("chat_history.csv", index=False)
-    os.system("libreoffice --headless --convert-to pdf chat_history.csv")
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    for index, row in df.iterrows():
+        pdf.multi_cell(0, 10, f"User Input: {row['user_input']}\nGPT Response: {row['gpt_response']}\n\n")
+
+    pdf.output("chat_history.pdf")
     st.success("Chat history exported to PDF!")
 
 # ==========================
@@ -155,41 +162,27 @@ def export_chats_to_pdf():
 def main():
     st.title("🤖 Chat History GPT Bot")
 
-    # Importar histórico JSON
     uploaded_file = st.file_uploader("📥 Import Chat History (JSON)")
-    if uploaded_file is not None:
+    if uploaded_file:
         with open("imported_chats.json", "wb") as f:
             f.write(uploaded_file.getbuffer())
         import_chat_history("imported_chats.json")
         st.success("✅ Chat history imported successfully!")
 
-    # Exportar para Excel e PDF
     if st.button("📊 Export to Excel"):
         export_chats_to_excel()
     
     if st.button("📄 Export to PDF"):
         export_chats_to_pdf()
 
-    # Buscar chats
     search_query = st.text_input("🔎 Search Chat History:")
     if st.button("🔍 Search"):
-        if search_query:
-            results = search_chat(search_query)
-            for result in results:
-                st.write(f"**User Input:** {result[0]}")
-                st.write(f"**GPT Response:** {result[1]}")
-                st.write("---")
-
-    # Organizar por clusters
-    if st.button("🗂️ Organize Chats"):
-        clusters = cluster_chats()
-        for cluster_id, chats in clusters.items():
-            st.write(f"### Topic {cluster_id + 1}")
-            for chat in chats:
-                st.write(f"- {chat}")
+        results = search_chat(search_query)
+        for result in results:
+            st.write(f"**User Input:** {result[0]}")
+            st.write(f"**GPT Response:** {result[1]}")
             st.write("---")
 
-    # Chat com GPT
     user_input = st.text_area("💬 Type your message:")
     if st.button("💡 Get GPT Response"):
         if user_input:
@@ -199,9 +192,6 @@ def main():
                 save_chat(date, user_input, gpt_response)
                 st.write(f"**GPT Response:** {gpt_response}")
 
-# ==========================
-# ▶️ Execução principal
-# ==========================
 if __name__ == "__main__":
     create_database()
     main()
