@@ -49,7 +49,7 @@ def save_chat(date, user_input, gpt_response):
     conn.close()
 
 # ==========================
-# 🔎 Busca com NLP (Natural Language Processing)
+# 🔎 Busca com NLP
 # ==========================
 def search_chat(query):
     conn = sqlite3.connect(DB_NAME)
@@ -99,14 +99,14 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(  # <-- Aqui foi corrigido
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
             ]
         )
-        return response.choices[0].message.content
+        return response['choices'][0]['message']['content']
     except Exception as e:
         st.error(f"Erro na API OpenAI: {e}")
         return None
@@ -150,7 +150,7 @@ def export_chats_to_pdf():
     pdf.set_font("Arial", size=12)
 
     for i, row in df.iterrows():
-        pdf.cell(0, 10, f"{row['date']} - {row['user_input']} -> {row['gpt_response']}", ln=True)
+        pdf.multi_cell(0, 10, f"{row['date']} - {row['user_input']} -> {row['gpt_response']}", border=0)
 
     pdf.output("chat_history.pdf")
     st.success("✅ Chat history exported to PDF!")
