@@ -98,7 +98,7 @@ def cluster_chats():
 # ==========================
 def generate_gpt_response(prompt):
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
